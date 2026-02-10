@@ -14,6 +14,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ignore favicon requests
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 // simple logger
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.path}`);
@@ -407,11 +410,19 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Email: ${email}`);
     console.log(`\nEndpoints:`);
     console.log(`  POST /bfhl`);
     console.log(`  GET /health\n`);
 });
+
+// Ensure server stays alive
+process.on('SIGTERM', () => {
+    server.close(() => {
+        console.log('Server closed');
+    });
+});
+
 module.exports = app;
